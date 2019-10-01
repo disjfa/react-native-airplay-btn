@@ -14,7 +14,7 @@ const airPlayEmitter = new NativeEventEmitter(RNAirplay);
 // Register Events
 
 const isAvailable = airPlayEmitter.addListener('airplayAvailable', (devices) => devices.available)
-const isConnected = airPlayEmitter.addListener('airplayConnected', (devices) => devices.connected)
+const isConnected = airPlayEmitter.addListener('airplayConnected', (devices) => devices)
 
 
 // Export methods and button component

@@ -12,13 +12,14 @@ react-native link
 ```js
 import { AirPlayListener } from react-native-airplay-btn
 
-this.airPlayAvailable = AirPlayListener.addListener('airplayAvailable', devices => this.setState({
-      airPlayAvailable: devices.available,
-})); --> returns a boolean
+this.airplayAvailableSubscription = AirPlayListener.addListener('airplayAvailable', devices => this.setState({
+      airPlayAvailable: devices.available, --> devices.available is a boolean
+})); 
 
-this.airPlayConnected = AirPlayListener.addListener('airplayConnected', devices => this.setState({
-      airPlayConnected: devices.connected,
-})); --> returns a boolean
+this.airplayConnectedSubscription = AirPlayListener.addListener('airplayConnected', devices => this.setState({
+      airPlayConnected: devices.connected, --> devices.connected is a boolean
+      airPlayMirroring: devices.mirroring, --> devices.mirroring is a boolean
+}));
 
 
 // Remove Listeners in componentWillUnmount
@@ -31,7 +32,7 @@ this.airPlayAvailable.remove()
 
 ```js
   AirPlay.startScan();
-  
+
   AirPlay.disconnect();
 ```
 
@@ -40,7 +41,7 @@ this.airPlayAvailable.remove()
 ```js
 import { AirPlayButton } from 'react-native-airplay-btn';
 
-<Button style={{ height: 30, width: 30, justifyContent: 'center', alignItems:'center' }} />
+<AirPlayButton style={{ height: 30, width: 30, justifyContent: 'center', alignItems:'center' }} />
 ```
 
 Note: The AirPlay Button does not show in the simulator

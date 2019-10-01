@@ -2,7 +2,7 @@
 #import "RNAirplayManager.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
-
+#import <MediaPlayer/MediaPlayer.h>
 
 @implementation RNAirplay
 @synthesize bridge = _bridge;
@@ -18,63 +18,67 @@ RCT_EXPORT_METHOD(startScan)
 {
     printf("init Airplay");
     AVAudioSessionRouteDescription* currentRoute = [[AVAudioSession sharedInstance] currentRoute];
-    BOOL isAvailable = false;
-    int routeCount = (int)[[currentRoute outputs] count];
-    BOOL isSpeaker = ([[[[currentRoute outputs] objectAtIndex:0] portName] isEqualToString:@"Speaker"]);
-    if(routeCount > 0 && !isSpeaker) {
-        isAvailable = true;
-        BOOL isConnected = true;
-        for (AVAudioSessionPortDescription * output in currentRoute.outputs) {
-            if([output.portType isEqualToString:AVAudioSessionPortAirPlay]) {
-                [self sendEventWithName:@"airplayConnected" body:@{@"connected": @(isConnected)}];
+    BOOL isAvailable = NO;
+    NSUInteger routeNum = [[currentRoute outputs] count];
+    if(routeNum > 0) {
+        isAvailable = YES;
+        BOOL isConnected = YES;
+        BOOL isMirroring = NO;
+        if (isConnected) {
+            if ([[UIScreen screens] count] < 2) {
+                //streaming
+                isMirroring = NO;
+            } else {
+                //mirroring
+                isMirroring = YES;
             }
         }
+        for (AVAudioSessionPortDescription * output in currentRoute.outputs) {
+            if([output.portType isEqualToString:AVAudioSessionPortAirPlay]) {
+                [self sendEventWithName:@"airplayConnected" body:@{@"connected": @(isConnected), @"mirroring": @(isMirroring)}];
+            }
+        }
+        
         [[NSNotificationCenter defaultCenter]
          addObserver:self
          selector: @selector(airplayChanged:)
-         name:AVAudioSessionRouteChangeNotification
-         object:[AVAudioSession sharedInstance]];
+         name:MPVolumeViewWirelessRouteActiveDidChangeNotification
+         object:nil];
+        
     }
-    
     [self sendEventWithName:@"airplayAvailable" body:@{@"available": @(isAvailable)}];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [self isAvailable];
-    });
 }
 
 RCT_EXPORT_METHOD(disconnect)
 {
     printf("disconnect Airplay");
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [self sendEventWithName:@"airplayAvailable" body:@{@"available": @(false) }];
+    [self sendEventWithName:@"airplayAvailable" body:@{@"available": @(NO) }];
 }
 
 
 - (void)airplayChanged:(NSNotification *)sender
 {
     AVAudioSessionRouteDescription* currentRoute = [[AVAudioSession sharedInstance] currentRoute];
-    BOOL isAirPlayPlaying = false;
-    for (AVAudioSessionPortDescription * output in currentRoute.outputs) {
+    
+    BOOL isAirPlayPlaying = NO;
+    BOOL isMirroring = NO;
+    for (AVAudioSessionPortDescription* output in currentRoute.outputs) {
         if([output.portType isEqualToString:AVAudioSessionPortAirPlay]) {
-            isAirPlayPlaying = true;
+            isAirPlayPlaying = YES;
             break;
         }
     }
-    [self sendEventWithName:@"airplayConnected" body:@{@"connected": @(isAirPlayPlaying)}];
-}
-
-
-- (void) isAvailable;
-{
-    printf("init Available");
-    AVAudioSessionRouteDescription* currentRoute = [[AVAudioSession sharedInstance] currentRoute];
-    BOOL isAvailable = false;
-    int routeCount = (int)[[currentRoute outputs] count];
-    BOOL isSpeaker = ([[[[currentRoute outputs] objectAtIndex:0] portName] isEqualToString:@"Speaker"]);
-    if(routeCount > 0 &&!isSpeaker) {
-        isAvailable = true;
+    if (isAirPlayPlaying) {
+        if ([[UIScreen screens] count] < 2) {
+            //streaming
+            isMirroring = NO;
+        } else {
+            //mirroring
+            isMirroring = YES;
+        }
     }
-    [self sendEventWithName:@"airplayAvailable" body:@{@"available": @(isAvailable)}];
+    [self sendEventWithName:@"airplayConnected" body:@{@"connected": @(isAirPlayPlaying), @"mirroring": @(isMirroring)}];
 }
 
 - (NSArray<NSString *> *)supportedEvents {
@@ -83,3 +87,5 @@ RCT_EXPORT_METHOD(disconnect)
 
 
 @end
+
+
