@@ -10,7 +10,7 @@ react-native link
 ### How to create listeners
 
 ```js
-import { AirPlayListener } from react-native-airplay-btn
+import { AirPlayListener } from 'react-native-airplay-btn';
 
 this.airPlayAvailable = AirPlayListener.addListener('airplayAvailable', devices => this.setState({
       airPlayAvailable: devices.available,
@@ -40,7 +40,7 @@ this.airPlayAvailable.remove()
 ```js
 import { AirPlayButton } from 'react-native-airplay-btn';
 
-<Button style={{ height: 30, width: 30, justifyContent: 'center', alignItems:'center' }} />
+<AirPlayButton style={{ height: 30, width: 30, justifyContent: 'center', alignItems:'center' }} />
 ```
 
 Note: The AirPlay Button does not show in the simulator
